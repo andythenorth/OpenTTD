@@ -63,7 +63,8 @@
 uint _toolbar_width = 0;
 
 RailType _last_built_railtype;
-RoadType _last_built_roadtype;
+RoadTypeIdentifier _last_built_roadtype_identifier;
+RoadTypeIdentifier _last_built_tramtype_identifier;
 
 static ScreenshotType _confirmed_screenshot_type; ///< Screenshot type the current query is about to confirm.
 
@@ -893,22 +894,7 @@ static CallBackFunction MenuClickBuildRail(int index)
 
 static CallBackFunction ToolbarBuildRoadClick(Window *w)
 {
-	const Company *c = Company::Get(_local_company);
-	DropDownList *list = new DropDownList();
-
-	/* Road is always visible and available. */
-	list->push_back(new DropDownListIconItem(SPR_IMG_ROAD_X_DIR, PAL_NONE, STR_ROAD_MENU_ROAD_CONSTRUCTION, ROADTYPE_ROAD, false));
-
-	/* Tram is only visible when there will be a tram, and available when that has been introduced. */
-	Engine *e;
-	FOR_ALL_ENGINES_OF_TYPE(e, VEH_ROAD) {
-		if (!HasBit(e->info.climates, _settings_game.game_creation.landscape)) continue;
-		if (!HasBit(e->info.misc_flags, EF_ROAD_TRAM)) continue;
-
-		list->push_back(new DropDownListIconItem(SPR_IMG_TRAMWAY_X_DIR, PAL_NONE, STR_ROAD_MENU_TRAM_CONSTRUCTION, ROADTYPE_TRAM, !HasBit(c->avail_roadtypes, ROADTYPE_TRAM)));
-		break;
-	}
-	ShowDropDownList(w, list, _last_built_roadtype, WID_TN_ROADS, 140, true, true);
+	ShowDropDownList(w, GetRoadTypeDropDownList(ROADTYPES_ROAD), _last_built_roadtype_identifier.Pack(), WID_TN_ROADS, 140, true, true);
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	return CBF_NONE;
 }
@@ -916,13 +902,35 @@ static CallBackFunction ToolbarBuildRoadClick(Window *w)
 /**
  * Handle click on the entry in the Build Road menu.
  *
- * @param index RoadType to show the build toolbar for.
+ * @param index packed RoadTypeIdentifier to show the build toolbar for.
  * @return #CBF_NONE
  */
 static CallBackFunction MenuClickBuildRoad(int index)
 {
-	_last_built_roadtype = (RoadType)index;
-	ShowBuildRoadToolbar(_last_built_roadtype);
+	_last_built_roadtype_identifier = RoadTypeIdentifier::Unpack(index);
+	ShowBuildRoadToolbar(_last_built_roadtype_identifier);
+	return CBF_NONE;
+}
+
+/* --- Tram button menu --- */
+
+static CallBackFunction ToolbarBuildTramClick(Window *w)
+{
+	ShowDropDownList(w, GetRoadTypeDropDownList(ROADTYPES_TRAM), _last_built_tramtype_identifier.Pack(), WID_TN_TRAMS, 140, true, true);
+	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+	return CBF_NONE;
+}
+
+/**
+ * Handle click on the entry in the Build Road menu.
+ *
+ * @param index packed RoadTypeIdentifier to show the build toolbar for.
+ * @return #CBF_NONE
+ */
+static CallBackFunction MenuClickBuildTram(int index)
+{
+	_last_built_tramtype_identifier = RoadTypeIdentifier::Unpack(index);
+	ShowBuildRoadToolbar(_last_built_tramtype_identifier);
 	return CBF_NONE;
 }
 
@@ -994,7 +1002,7 @@ static CallBackFunction MenuClickForest(int index)
 
 static CallBackFunction ToolbarMusicClick(Window *w)
 {
-	PopupMainToolbMenu(w, WID_TN_MUSIC_SOUND, STR_TOOLBAR_SOUND_MUSIC, 1);
+	PopupMainToolbMenu(w, _game_mode == GM_EDITOR ? (int)WID_TE_MUSIC_SOUND : (int)WID_TN_MUSIC_SOUND, STR_TOOLBAR_SOUND_MUSIC, 1);
 	return CBF_NONE;
 }
 
@@ -1049,7 +1057,7 @@ static CallBackFunction PlaceLandBlockInfo()
 
 static CallBackFunction ToolbarHelpClick(Window *w)
 {
-	PopupMainToolbMenu(w, WID_TN_HELP, STR_ABOUT_MENU_LAND_BLOCK_INFO, _settings_client.gui.newgrf_developer_tools ? 13 : 10);
+	PopupMainToolbMenu(w, _game_mode == GM_EDITOR ? (int)WID_TE_HELP : (int)WID_TN_HELP, STR_ABOUT_MENU_LAND_BLOCK_INFO, _settings_client.gui.newgrf_developer_tools ? 13 : 10);
 	return CBF_NONE;
 }
 
@@ -1171,7 +1179,7 @@ static CallBackFunction ToolbarSwitchClick(Window *w)
 	}
 
 	w->ReInit();
-	w->SetWidgetLoweredState(WID_TN_SWITCH_BAR, _toolbar_mode == TB_LOWER);
+	w->SetWidgetLoweredState(_game_mode == GM_EDITOR ? (uint)WID_TE_SWITCH_BAR : (uint)WID_TN_SWITCH_BAR, _toolbar_mode == TB_LOWER);
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	return CBF_NONE;
 }
@@ -1241,11 +1249,43 @@ static CallBackFunction ToolbarScenGenIndustry(Window *w)
 	return CBF_NONE;
 }
 
-static CallBackFunction ToolbarScenBuildRoad(Window *w)
+static CallBackFunction ToolbarScenBuildRoadClick(Window *w)
 {
-	w->HandleButtonClick(WID_TE_ROADS);
+	ShowDropDownList(w, GetScenRoadTypeDropDownList(ROADTYPES_ROAD), _last_built_roadtype_identifier.Pack(), WID_TE_ROADS, 140, true, true);
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-	ShowBuildRoadScenToolbar();
+	return CBF_NONE;
+}
+
+/**
+ * Handle click on the entry in the Build Road menu.
+ *
+ * @param index packed RoadTypeIdentifier to show the build toolbar for.
+ * @return #CBF_NONE
+ */
+static CallBackFunction ToolbarScenBuildRoad(int index)
+{
+	_last_built_roadtype_identifier = RoadTypeIdentifier::Unpack(index);
+	ShowBuildRoadScenToolbar(_last_built_roadtype_identifier);
+	return CBF_NONE;
+}
+
+static CallBackFunction ToolbarScenBuildTramClick(Window *w)
+{
+	ShowDropDownList(w, GetScenRoadTypeDropDownList(ROADTYPES_TRAM), _last_built_tramtype_identifier.Pack(), WID_TE_TRAMS, 140, true, true);
+	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+	return CBF_NONE;
+}
+
+/**
+ * Handle click on the entry in the Build Tram menu.
+ *
+ * @param index packed RoadTypeIdentifier to show the build toolbar for.
+ * @return #CBF_NONE
+ */
+static CallBackFunction ToolbarScenBuildTram(int index)
+{
+	_last_built_tramtype_identifier = RoadTypeIdentifier::Unpack(index);
+	ShowBuildRoadScenToolbar(_last_built_tramtype_identifier);
 	return CBF_NONE;
 }
 
@@ -1303,12 +1343,13 @@ static MenuClickedProc * const _menu_clicked_procs[] = {
 	NULL,                 // 20
 	MenuClickBuildRail,   // 21
 	MenuClickBuildRoad,   // 22
-	MenuClickBuildWater,  // 23
-	MenuClickBuildAir,    // 24
-	MenuClickForest,      // 25
-	MenuClickMusicWindow, // 26
-	MenuClickNewspaper,   // 27
-	MenuClickHelp,        // 28
+	MenuClickBuildTram,   // 23
+	MenuClickBuildWater,  // 24
+	MenuClickBuildAir,    // 25
+	MenuClickForest,      // 26
+	MenuClickMusicWindow, // 27
+	MenuClickNewspaper,   // 28
+	MenuClickHelp,        // 29
 };
 
 /** Full blown container to make it behave exactly as we want :) */
@@ -1764,6 +1805,7 @@ class NWidgetMainToolbarContainer : public NWidgetToolbarContainer {
 			WID_TN_ZOOM_OUT,
 			WID_TN_RAILS,
 			WID_TN_ROADS,
+			WID_TN_TRAMS,
 			WID_TN_WATER,
 			WID_TN_AIR,
 			WID_TN_LANDSCAPE,
@@ -1824,6 +1866,7 @@ class NWidgetScenarioToolbarContainer : public NWidgetToolbarContainer {
 			WID_TE_TOWN_GENERATE,
 			WID_TE_INDUSTRY,
 			WID_TE_ROADS,
+			WID_TE_TRAMS,
 			WID_TE_WATER,
 			WID_TE_TREES,
 			WID_TE_SIGNS,
@@ -1843,6 +1886,7 @@ class NWidgetScenarioToolbarContainer : public NWidgetToolbarContainer {
 			WID_TE_TOWN_GENERATE,
 			WID_TE_INDUSTRY,
 			WID_TE_ROADS,
+			WID_TE_TRAMS,
 			WID_TE_WATER,
 			WID_TE_TREES,
 			WID_TE_SIGNS,
@@ -1856,6 +1900,7 @@ class NWidgetScenarioToolbarContainer : public NWidgetToolbarContainer {
 			WID_TE_TOWN_GENERATE,
 			WID_TE_INDUSTRY,
 			WID_TE_ROADS,
+			WID_TE_TRAMS,
 			WID_TE_WATER,
 			WID_TE_TREES,
 			WID_TE_SIGNS,
@@ -1866,10 +1911,12 @@ class NWidgetScenarioToolbarContainer : public NWidgetToolbarContainer {
 			WID_TE_SETTINGS,
 			WID_TE_SAVE,
 			WID_TE_DATE_PANEL,
+			WID_TE_SMALL_MAP,
 			WID_TE_ZOOM_IN,
 			WID_TE_ZOOM_OUT,
 			WID_TE_MUSIC_SOUND,
-			WID_TE_HELP, WID_TE_SWITCH_BAR,
+			WID_TE_HELP,
+			WID_TE_SWITCH_BAR,
 		};
 
 		/* If we can place all buttons *and* the panels, show them. */
@@ -1929,6 +1976,7 @@ static ToolbarButtonProc * const _toolbar_button_procs[] = {
 	ToolbarZoomOutClick,
 	ToolbarBuildRailClick,
 	ToolbarBuildRoadClick,
+	ToolbarBuildTramClick,
 	ToolbarBuildWaterClick,
 	ToolbarBuildAirClick,
 	ToolbarForestClick,
@@ -1963,6 +2011,7 @@ enum MainToolbarHotkeys {
 	MTHK_ZOOM_OUT,
 	MTHK_BUILD_RAIL,
 	MTHK_BUILD_ROAD,
+	MTHK_BUILD_TRAM,
 	MTHK_BUILD_DOCKS,
 	MTHK_BUILD_AIRPORT,
 	MTHK_BUILD_TREES,
@@ -2007,7 +2056,7 @@ struct MainToolbarWindow : Window {
 		/* If spectator, disable all construction buttons
 		 * ie : Build road, rail, ships, airports and landscaping
 		 * Since enabled state is the default, just disable when needed */
-		this->SetWidgetsDisabledState(_local_company == COMPANY_SPECTATOR, WID_TN_RAILS, WID_TN_ROADS, WID_TN_WATER, WID_TN_AIR, WID_TN_LANDSCAPE, WIDGET_LIST_END);
+		this->SetWidgetsDisabledState(_local_company == COMPANY_SPECTATOR, WID_TN_RAILS, WID_TN_ROADS, WID_TN_TRAMS, WID_TN_WATER, WID_TN_AIR, WID_TN_LANDSCAPE, WIDGET_LIST_END);
 		/* disable company list drop downs, if there are no companies */
 		this->SetWidgetsDisabledState(Company::GetNumItems() == 0, WID_TN_STATIONS, WID_TN_FINANCES, WID_TN_TRAINS, WID_TN_ROADVEHS, WID_TN_SHIPS, WID_TN_AIRCRAFT, WIDGET_LIST_END);
 
@@ -2015,6 +2064,8 @@ struct MainToolbarWindow : Window {
 		this->SetWidgetDisabledState(WID_TN_STORY, StoryPage::GetNumItems() == 0);
 
 		this->SetWidgetDisabledState(WID_TN_RAILS, !CanBuildVehicleInfrastructure(VEH_TRAIN));
+		this->SetWidgetDisabledState(WID_TN_ROADS, GetCompanyRoadtypes(_local_company, ROADTYPE_ROAD) == ROADSUBTYPES_NONE);
+		this->SetWidgetDisabledState(WID_TN_TRAMS, GetCompanyRoadtypes(_local_company, ROADTYPE_TRAM) == ROADSUBTYPES_NONE);
 		this->SetWidgetDisabledState(WID_TN_AIR, !CanBuildVehicleInfrastructure(VEH_AIRCRAFT));
 
 		this->DrawWidgets();
@@ -2057,7 +2108,8 @@ struct MainToolbarWindow : Window {
 			case MTHK_ZOOM_IN: ToolbarZoomInClick(this); break;
 			case MTHK_ZOOM_OUT: ToolbarZoomOutClick(this); break;
 			case MTHK_BUILD_RAIL: if (CanBuildVehicleInfrastructure(VEH_TRAIN)) ShowBuildRailToolbar(_last_built_railtype); break;
-			case MTHK_BUILD_ROAD: ShowBuildRoadToolbar(_last_built_roadtype); break;
+			case MTHK_BUILD_ROAD: ShowBuildRoadToolbar(_last_built_roadtype_identifier); break;
+			case MTHK_BUILD_TRAM: if (CanBuildRoadTypeInfrastructure(_last_built_tramtype_identifier, _local_company)) ShowBuildRoadToolbar(_last_built_tramtype_identifier); break;
 			case MTHK_BUILD_DOCKS: ShowBuildDocksToolbar(); break;
 			case MTHK_BUILD_AIRPORT: if (CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) ShowBuildAirToolbar(); break;
 			case MTHK_BUILD_TREES: ShowBuildTreesToolbar(); break;
@@ -2169,6 +2221,7 @@ static Hotkey maintoolbar_hotkeys[] = {
 	Hotkey(_maintoolbar_zoomout_keys, "zoomout", MTHK_ZOOM_OUT),
 	Hotkey(WKC_SHIFT | WKC_F7, "build_rail", MTHK_BUILD_RAIL),
 	Hotkey(WKC_SHIFT | WKC_F8, "build_road", MTHK_BUILD_ROAD),
+	Hotkey((uint16)0, "build_tram", MTHK_BUILD_TRAM),
 	Hotkey(WKC_SHIFT | WKC_F9, "build_docks", MTHK_BUILD_DOCKS),
 	Hotkey(WKC_SHIFT | WKC_F10, "build_airport", MTHK_BUILD_AIRPORT),
 	Hotkey(WKC_SHIFT | WKC_F11, "build_trees", MTHK_BUILD_TREES),
@@ -2214,6 +2267,7 @@ static NWidgetBase *MakeMainToolbar(int *biggest_index)
 		SPR_IMG_ZOOMOUT,         // WID_TN_ZOOMOUT
 		SPR_IMG_BUILDRAIL,       // WID_TN_RAILS
 		SPR_IMG_BUILDROAD,       // WID_TN_ROADS
+		SPR_IMG_BUILDTRAMS,      // WID_TN_TRAMS
 		SPR_IMG_BUILDWATER,      // WID_TN_WATER
 		SPR_IMG_BUILDAIR,        // WID_TN_AIR
 		SPR_IMG_LANDSCAPING,     // WID_TN_LANDSCAPE
@@ -2254,8 +2308,33 @@ static WindowDesc _toolb_normal_desc(
 	&MainToolbarWindow::hotkeys
 );
 
-
 /* --- Toolbar handling for the scenario editor */
+
+static MenuClickedProc * const _scen_toolbar_dropdown_procs[] = {
+	NULL,                 // 0
+	NULL,                 // 1
+	MenuClickSettings,    // 2
+	MenuClickSaveLoad,    // 3
+	NULL,                 // 4
+	NULL,                 // 5
+	NULL,                 // 6
+	NULL,                 // 7
+	MenuClickMap,         // 8
+	NULL,                 // 9
+	NULL,                 // 10
+	NULL,                 // 11
+	NULL,                 // 12
+	NULL,                 // 13
+	ToolbarScenBuildRoad, // 14
+	ToolbarScenBuildTram, // 15
+	NULL,                 // 16
+	NULL,                 // 17
+	NULL,                 // 18
+	NULL,                 // 19
+	MenuClickMusicWindow, // 20
+	MenuClickHelp,        // 21
+	NULL,                 // 22
+};
 
 static ToolbarButtonProc * const _scen_toolbar_button_procs[] = {
 	ToolbarPauseClick,
@@ -2272,20 +2351,13 @@ static ToolbarButtonProc * const _scen_toolbar_button_procs[] = {
 	ToolbarScenGenLand,
 	ToolbarScenGenTown,
 	ToolbarScenGenIndustry,
-	ToolbarScenBuildRoad,
+	ToolbarScenBuildRoadClick,
+	ToolbarScenBuildTramClick,
 	ToolbarScenBuildDocks,
 	ToolbarScenPlantTrees,
 	ToolbarScenPlaceSign,
 	ToolbarBtn_NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
 	ToolbarMusicClick,
-	NULL,
 	ToolbarHelpClick,
 	ToolbarSwitchClick,
 };
@@ -2299,6 +2371,7 @@ enum MainToolbarEditorHotkeys {
 	MTEHK_GENTOWN,
 	MTEHK_GENINDUSTRY,
 	MTEHK_BUILD_ROAD,
+	MTEHK_BUILD_TRAM,
 	MTEHK_BUILD_DOCKS,
 	MTEHK_BUILD_TREES,
 	MTEHK_SIGN,
@@ -2388,10 +2461,7 @@ struct ScenarioEditorToolbarWindow : Window {
 
 	void OnDropdownSelect(int widget, int index) override
 	{
-		/* The map button is in a different location on the scenario
-		 * editor toolbar, so we need to adjust for it. */
-		if (widget == WID_TE_SMALL_MAP) widget = WID_TN_SMALL_MAP;
-		CallBackFunction cbf = _menu_clicked_procs[widget](index);
+		CallBackFunction cbf = _scen_toolbar_dropdown_procs[widget](index);
 		if (cbf != CBF_NONE) _last_started_action = cbf;
 		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	}
@@ -2407,7 +2477,8 @@ struct ScenarioEditorToolbarWindow : Window {
 			case MTEHK_GENLAND:                ToolbarScenGenLand(this); break;
 			case MTEHK_GENTOWN:                ToolbarScenGenTown(this); break;
 			case MTEHK_GENINDUSTRY:            ToolbarScenGenIndustry(this); break;
-			case MTEHK_BUILD_ROAD:             ToolbarScenBuildRoad(this); break;
+			case MTEHK_BUILD_ROAD:             ToolbarScenBuildRoadClick(this); break;
+			case MTEHK_BUILD_TRAM:             ToolbarScenBuildTramClick(this); break;
 			case MTEHK_BUILD_DOCKS:            ToolbarScenBuildDocks(this); break;
 			case MTEHK_BUILD_TREES:            ToolbarScenPlantTrees(this); break;
 			case MTEHK_SIGN:                   cbf = ToolbarScenPlaceSign(this); break;
@@ -2511,6 +2582,7 @@ static Hotkey scenedit_maintoolbar_hotkeys[] = {
 	Hotkey(WKC_F5, "gen_town", MTEHK_GENTOWN),
 	Hotkey(WKC_F6, "gen_industry", MTEHK_GENINDUSTRY),
 	Hotkey(WKC_F7, "build_road", MTEHK_BUILD_ROAD),
+	Hotkey((uint16)0, "build_tram", MTEHK_BUILD_TRAM),
 	Hotkey(WKC_F8, "build_docks", MTEHK_BUILD_DOCKS),
 	Hotkey(WKC_F9, "build_trees", MTEHK_BUILD_TREES),
 	Hotkey(WKC_F10, "build_sign", MTEHK_SIGN),
@@ -2554,6 +2626,7 @@ static const NWidgetPart _nested_toolb_scen_inner_widgets[] = {
 	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_TOWN_GENERATE), SetDataTip(SPR_IMG_TOWN, STR_SCENEDIT_TOOLBAR_TOWN_GENERATION),
 	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_INDUSTRY), SetDataTip(SPR_IMG_INDUSTRY, STR_SCENEDIT_TOOLBAR_INDUSTRY_GENERATION),
 	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_ROADS), SetDataTip(SPR_IMG_BUILDROAD, STR_SCENEDIT_TOOLBAR_ROAD_CONSTRUCTION),
+	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_TRAMS), SetDataTip(SPR_IMG_BUILDTRAMS, STR_SCENEDIT_TOOLBAR_TRAM_CONSTRUCTION),
 	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_WATER), SetDataTip(SPR_IMG_BUILDWATER, STR_TOOLBAR_TOOLTIP_BUILD_SHIP_DOCKS),
 	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_TREES), SetDataTip(SPR_IMG_PLANTTREES, STR_SCENEDIT_TOOLBAR_PLANT_TREES),
 	NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_TE_SIGNS), SetDataTip(SPR_IMG_SIGN, STR_SCENEDIT_TOOLBAR_PLACE_SIGN),
@@ -2584,7 +2657,8 @@ static WindowDesc _toolb_scen_desc(
 void AllocateToolbar()
 {
 	/* Clean old GUI values; railtype is (re)set by rail_gui.cpp */
-	_last_built_roadtype = ROADTYPE_ROAD;
+	_last_built_roadtype_identifier = RoadTypeIdentifier(ROADTYPE_ROAD, ROADSUBTYPE_NORMAL);
+	_last_built_tramtype_identifier = RoadTypeIdentifier(ROADTYPE_TRAM, ROADSUBTYPE_NORMAL);
 
 	if (_game_mode == GM_EDITOR) {
 		new ScenarioEditorToolbarWindow(&_toolb_scen_desc);
