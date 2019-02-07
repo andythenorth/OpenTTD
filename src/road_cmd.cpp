@@ -51,6 +51,7 @@ typedef std::vector<RoadVehicle *> RoadVehicleList;
 RoadtypeInfo _roadtypes[ROADTYPE_END][ROADSUBTYPE_END];
 RoadTypeIdentifier _sorted_roadtypes[ROADTYPE_END][ROADSUBTYPE_END];
 uint8 _sorted_roadtypes_size[ROADTYPE_END];
+RoadSubTypes _roadtypes_hidden_mask[ROADTYPE_END];
 
 /**
  * Reset all road type information to its default values.
@@ -68,10 +69,12 @@ void ResetRoadTypes()
 	/* Road types */
 	_roadtypes[ROADTYPE_ROAD][ROADSUBTYPE_NORMAL] = _original_roadtype;
 	for (uint i = 1; i < lengthof(_roadtypes[ROADTYPE_ROAD]); i++) _roadtypes[ROADTYPE_ROAD][i] = empty_roadtype;
+	_roadtypes_hidden_mask[ROADTYPE_ROAD] = ROADSUBTYPES_NONE;
 
 	/* Tram types */
 	_roadtypes[ROADTYPE_TRAM][ROADSUBTYPE_NORMAL] = _original_tramtype;
 	for (uint i = 1; i < lengthof(_roadtypes[ROADTYPE_TRAM]); i++) _roadtypes[ROADTYPE_TRAM][i] = empty_roadtype;
+	_roadtypes_hidden_mask[ROADTYPE_TRAM] = ROADSUBTYPES_NONE;
 }
 
 void ResolveRoadTypeGUISprites(RoadtypeInfo *rti)
@@ -113,11 +116,12 @@ void InitRoadTypes()
 		for (RoadSubType rst = ROADSUBTYPE_BEGIN; rst != ROADSUBTYPE_END; rst++) {
 			RoadtypeInfo *rti = &_roadtypes[rt][rst];
 			ResolveRoadTypeGUISprites(rti);
+			if (HasBit(rti->flags, ROTF_HIDDEN)) SetBit(_roadtypes_hidden_mask[rt], rst);
 		}
 
 		_sorted_roadtypes_size[rt] = 0;
 		for (RoadSubType rst = ROADSUBTYPE_BEGIN; rst != ROADSUBTYPE_END; rst++) {
-			if (_roadtypes[rt][rst].label != 0) {
+			if (_roadtypes[rt][rst].label != 0 && !HasBit(_roadtypes_hidden_mask[rt], rt)) {
 				_sorted_roadtypes[rt][_sorted_roadtypes_size[rt]++] = RoadTypeIdentifier(rt, rst);
 			}
 		}
