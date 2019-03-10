@@ -1068,7 +1068,7 @@ bool AfterLoadGame()
 							break;
 						case ROAD_TILE_DEPOT:    break;
 					}
-					SB(_me[t].m7, 6, 2, ROADTYPES_ROAD);
+					SB(_me[t].m7, 6, 2, ROADTYPES_ROAD); // Set pre-NRT road type bits for conversion later.
 					break;
 
 				case MP_STATION:
@@ -1079,7 +1079,7 @@ bool AfterLoadGame()
 					/* Middle part of "old" bridges */
 					if (old_bridge && IsBridge(t) && HasBit(_m[t].m5, 6)) break;
 					if (((old_bridge && IsBridge(t)) ? (TransportType)GB(_m[t].m5, 1, 2) : GetTunnelBridgeTransportType(t)) == TRANSPORT_ROAD) {
-						SB(_me[t].m7, 6, 2, ROADTYPES_ROAD);
+						SB(_me[t].m7, 6, 2, ROADTYPES_ROAD); // Set pre-NRT road type bits for conversion later.
 					}
 					break;
 
@@ -1293,7 +1293,7 @@ bool AfterLoadGame()
 				if (HasBit(_me[t].m7, 7)) rtids.tram_identifier = RoadTypeIdentifier(ROADTYPE_TRAM, ROADSUBTYPE_NORMAL);
 				assert(rtids.PresentRoadTypes() != ROADTYPES_NONE);
 				SetRoadTypes(t, rtids);
-				SB(_me[t].m7, 6, 2, 0);
+				SB(_me[t].m7, 6, 2, 0); // Clear pre-NRT road type bits.
 			}
 		}
 	}
