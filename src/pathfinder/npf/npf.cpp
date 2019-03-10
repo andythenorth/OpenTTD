@@ -739,16 +739,16 @@ static DiagDirection GetSingleTramBit(TileIndex tile)
  *
  * @param tile The tile of interest.
  * @param type The transporttype of the vehicle.
- * @param subtype For TRANSPORT_ROAD the compatible RoadTypes of the vehicle.
+ * @param roadtype For TRANSPORT_ROAD the RoadType of the vehicle.
  * @return The single entry/exit-direction of the tile, or INVALID_DIAGDIR if there are more or less directions
  */
-static DiagDirection GetTileSingleEntry(TileIndex tile, TransportType type, uint subtype)
+static DiagDirection GetTileSingleEntry(TileIndex tile, TransportType type, RoadType roadtype)
 {
 	if (type != TRANSPORT_WATER && IsDepotTypeTile(tile, type)) return GetDepotDirection(tile, type);
 
 	if (type == TRANSPORT_ROAD) {
 		if (IsStandardRoadStopTile(tile)) return GetRoadStopDir(tile);
-		if (subtype == ROADTYPE_TRAM) return GetSingleTramBit(tile);
+		if (roadtype == ROADTYPE_TRAM) return GetSingleTramBit(tile);
 	}
 
 	return INVALID_DIAGDIR;
@@ -760,12 +760,12 @@ static DiagDirection GetTileSingleEntry(TileIndex tile, TransportType type, uint
  * @param tile The tile of interest.
  * @param dir The direction in which the vehicle drives on a tile.
  * @param type The transporttype of the vehicle.
- * @param subtype For TRANSPORT_ROAD the compatible RoadTypes of the vehicle.
+ * @param roadtype For TRANSPORT_ROAD the RoadType of the vehicle.
  * @return true iff the vehicle must reverse on the tile.
  */
-static inline bool ForceReverse(TileIndex tile, DiagDirection dir, TransportType type, uint subtype)
+static inline bool ForceReverse(TileIndex tile, DiagDirection dir, TransportType type, RoadType roadtype)
 {
-	DiagDirection single_entry = GetTileSingleEntry(tile, type, subtype);
+	DiagDirection single_entry = GetTileSingleEntry(tile, type, roadtype);
 	return single_entry != INVALID_DIAGDIR && single_entry != dir;
 }
 
@@ -794,8 +794,8 @@ static bool CanEnterTile(TileIndex tile, DiagDirection dir, AyStarUserData *user
 		}
 
 		case TRANSPORT_ROAD: {
-			RoadSubType subtype = GetRoadSubType(tile, user->roadtype);
-			if (!HasBit(user->roadsubtypes, subtype)) return false;
+			RoadSubType roadsubtype = GetRoadSubType(tile, user->roadtype);
+			if (!HasBit(user->roadsubtypes, roadsubtype)) return false;
 			break;
 		}
 
@@ -818,14 +818,14 @@ static bool CanEnterTile(TileIndex tile, DiagDirection dir, AyStarUserData *user
  * @param src_tile The originating tile.
  * @param src_trackdir The direction the vehicle is currently moving.
  * @param type The transporttype of the vehicle.
- * @param subtype For TRANSPORT_ROAD the compatible RoadTypes of the vehicle.
+ * @param roadtype For TRANSPORT_ROAD the compatible RoadTypes of the vehicle.
  * @return The Trackdirs the vehicle can continue moving on.
  */
-static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, TileIndex src_tile, Trackdir src_trackdir, TransportType type, uint subtype)
+static TrackdirBits GetDriveableTrackdirBits(TileIndex dst_tile, TileIndex src_tile, Trackdir src_trackdir, TransportType type, RoadType roadtype)
 {
-	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(GetTileTrackStatus(dst_tile, type, subtype));
+	TrackdirBits trackdirbits = TrackStatusToTrackdirBits(GetTileTrackStatus(dst_tile, type, roadtype));
 
-	if (trackdirbits == TRACKDIR_BIT_NONE && type == TRANSPORT_ROAD && subtype == ROADTYPE_TRAM) {
+	if (trackdirbits == TRACKDIR_BIT_NONE && type == TRANSPORT_ROAD && roadtype == ROADTYPE_TRAM) {
 		/* GetTileTrackStatus() returns 0 for single tram bits.
 		 * As we cannot change it there (easily) without breaking something, change it here */
 		switch (GetSingleTramBit(dst_tile)) {
@@ -875,7 +875,7 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 
 	/* Information about the vehicle: TransportType (road/rail/water) and SubType (compatible rail/road types) */
 	TransportType type = user->type;
-	uint subtype = user->roadtype;
+	RoadType roadtype = user->roadtype;
 
 	/* Initialize to 0, so we can jump out (return) somewhere an have no neighbours */
 	aystar->num_neighbours = 0;
@@ -892,12 +892,12 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 	if (CheckIgnoreFirstTile(&current->path)) {
 		/* Do not perform any checks that involve src_tile */
 		dst_tile = src_tile + TileOffsByDiagDir(src_exitdir);
-		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_tile, src_trackdir, type, subtype);
+		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_tile, src_trackdir, type, roadtype);
 	} else if (IsTileType(src_tile, MP_TUNNELBRIDGE) && GetTunnelBridgeDirection(src_tile) == src_exitdir) {
 		/* We drive through the wormhole and arrive on the other side */
 		dst_tile = GetOtherTunnelBridgeEnd(src_tile);
 		trackdirbits = TrackdirToTrackdirBits(src_trackdir);
-	} else if (ForceReverse(src_tile, src_exitdir, type, subtype)) {
+	} else if (ForceReverse(src_tile, src_exitdir, type, roadtype)) {
 		/* We can only reverse on this tile */
 		dst_tile = src_tile;
 		src_trackdir = ReverseTrackdir(src_trackdir);
@@ -910,22 +910,22 @@ static void NPFFollowTrack(AyStar *aystar, OpenListNode *current)
 
 		if (dst_tile == INVALID_TILE) {
 			/* We cannot enter the next tile. Road vehicles can reverse, others reach dead end */
-			if (type != TRANSPORT_ROAD || subtype == ROADTYPE_TRAM) return;
+			if (type != TRANSPORT_ROAD || roadtype == ROADTYPE_TRAM) return;
 
 			dst_tile = src_tile;
 			src_trackdir = ReverseTrackdir(src_trackdir);
 		}
 
-		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_tile, src_trackdir, type, subtype);
+		trackdirbits = GetDriveableTrackdirBits(dst_tile, src_tile, src_trackdir, type, roadtype);
 
 		if (trackdirbits == TRACKDIR_BIT_NONE) {
 			/* We cannot enter the next tile. Road vehicles can reverse, others reach dead end */
-			if (type != TRANSPORT_ROAD || subtype == ROADTYPE_TRAM) return;
+			if (type != TRANSPORT_ROAD || roadtype == ROADTYPE_TRAM) return;
 
 			dst_tile = src_tile;
 			src_trackdir = ReverseTrackdir(src_trackdir);
 
-			trackdirbits = GetDriveableTrackdirBits(dst_tile, src_tile, src_trackdir, type, subtype);
+			trackdirbits = GetDriveableTrackdirBits(dst_tile, src_tile, src_trackdir, type, roadtype);
 		}
 	}
 
