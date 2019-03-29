@@ -2263,13 +2263,13 @@ static CommandCost TerraformTile_Road(TileIndex tile, DoCommandFlag flags, int z
 	return DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 }
 
-/** Update power of train under which is the railtype being converted */
+/** Update power of road vehicle under which is the roadtype being converted */
 static Vehicle *UpdateRoadVehPowerProc(Vehicle *v, void *data)
 {
 	if (v->type != VEH_ROAD) return NULL;
 
-	RoadVehicleList *affected_trains = static_cast<RoadVehicleList*>(data);
-	include(*affected_trains, RoadVehicle::From(v)->First());
+	RoadVehicleList *affected_rvs = static_cast<RoadVehicleList*>(data);
+	include(*affected_rvs, RoadVehicle::From(v)->First());
 
 	return NULL;
 }
