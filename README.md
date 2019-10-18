@@ -7,7 +7,6 @@
     - 1.2) [Contributing to OpenTTD](#12-contributing-to-openttd)
 - 2.0) [Contacting](#20-contacting)
     - 2.1) [Reporting bugs](#21-reporting-bugs)
-    - 2.2) [Reporting desyncs](#22-reporting-desyncs)
 - 3.0) [Supported platforms](#30-supported-platforms)
 - 4.0) [Installing and running OpenTTD](#40-installing-and-running-openttd)
     - 4.1) [(Required) 3rd party files](#41-required-3rd-party-files)
@@ -35,122 +34,18 @@ OpenTTD is licensed under the GNU General Public License version 2.0,
 but includes some 3rd party software under different licenses. See the
 section "Licensing" below for details.
 
-## 1.1) Compiling OpenTTD
+## 1.1) Downloading OpenTTD
 
-Instructions for compiling OpenTTD can be found in [./COMPILING.md](COMPILING.md)
+OpenTTD can be downloaded from the official OpenTTD website.
 
-## 1.2) Contributing to OpenTTD
+## 1.2) Compiling OpenTTD
+
+If you want to compile OpenTTD from source, instructions can be found in [./COMPILING.md](COMPILING.md)
+
+## 1.3) Contributing to OpenTTD
 
 We welcome contributors to OpenTTD.  More information for contributors can be found in [./CONTRIBUTING.md](CONTRIBUTING.md)
 
-## 2.0) Contacting
-
-The easiest way to contact the OpenTTD team is by submitting bug reports or
-posting comments in our forums. You can also chat with us on IRC (#openttd
-on irc.oftc.net).
-
-The OpenTTD homepage is https://www.openttd.org.
-
-You can also find the OpenTTD forums at
-[https://www.tt-forums.net](https://www.tt-forums.net/viewforum.php?f=55).
-
-### 2.1) Reporting bugs
-
-First of all, check whether the bug is not already known. Do this by looking
-through the file called 'known-bugs.txt' which is distributed with OpenTTD
-like this readme.
-
-For tracking our bugs we are using GitHub's issue tracker. You can find
-the tracker at https://github.com/OpenTTD/OpenTTD/issues. Before actually
-reporting take a look through the already reported bugs there to see if
-the bug is already known. The 'known-bugs.txt' file might be a bit outdated
-at the moment you are reading it as only bugs known before the release
-are documented there. Also look through the recently closed bugs.
-
-When you are sure it is not already reported you should:
-
-- Make sure you are running a recent version, i.e. run the latest stable or
-   nightly based on where you found the bug.
-- Make sure you are not running a non-official binary, like a patch pack.
-   When you are playing with a patch pack you should report any bugs to the
-   forum thread related to that patch pack.
-- Make it reproducible for the developers. In other words, create a savegame
-   in which you can reproduce the issue once loaded. It is very useful to give
-   us the crash.dmp, crash.sav, crash.log and crash screenshot which are
-   created on crashes.
-- Check whether the bug is already reported on our bug tracker. This includes
-   searching for recently closed bug reports as the bug might already be fixed.
-
-After you have done all that you can report the bug. Please include the
-following information in your bug report:
-
-- OpenTTD version (PLEASE test the latest Git revision/nightly build)
-- Bug details, including instructions how to reproduce it
-- Platform (Windows, Linux, FreeBSD, …) and compiler (including version) if
-   you compiled OpenTTD yourself.
-- The processor architecture of your OS (32-bit Windows, 64-bit Windows,
-   Linux on an ARM, Mac OS X on a PowerPC, etc.)
-- Attach a saved game **and** a screenshot if possible
-- If this bug only occurred recently please note the last version without
-   the bug and the first version including the bug. That way we can fix it
-   quicker by looking at the changes made.
-- Attach crash.dmp, crash.log and crash.sav. These files are usually created
-   next to your openttd.cfg. The crash handler will tell you the location.
-
-### 2.2) Reporting desyncs
-
-As desyncs are hard to make reproducible OpenTTD has the ability to log all
-actions done by clients so we can replay the whole game in an effort to make
-desyncs better reproducible. You need to turn this ability on. When turned
-on an automatic savegame will be made once the map has been constructed in
-the 'save/autosave' directory, see OpenTTD directories to know where to find
-this directory. Furthermore the log file 'commands-out.log' will be created
-and all actions will be written to there.
-
-To enable the desync debugging you need to set the debug level for 'desync'
-to at least 1. You do this by starting OpenTTD with '`-d desync=<level>`' as
-parameter or by typing '`debug_level desync=<level>`' in OpenTTD's internal
-console.
-The desync debug levels are:
-
-- 0: nothing.
-- 1: dumping of commands to 'commands-out.log'.
-- 2: same as 1 plus checking vehicle caches and dumping that too.
-- 3: same as 2 plus monthly saves in autosave.
-- 4 and higher: same as 3
-
-Restarting OpenTTD will overwrite 'commands-out.log'. OpenTTD will not remove
-the savegames (dmp_cmds_*.sav) made by the desync debugging system, so you
-have to occasionally remove them yourself!
-
-The naming format of the desync savegames is as follows:
-dmp_cmds_XXXXXXXX_YYYYYYYY.sav. The XXXXXXXX is the hexadecimal representation
-of the generation seed of the game and YYYYYYYY is the hexadecimal
-representation of the date of the game. This sorts the savegames by game and
-then by date making it easier to find the right savegames.
-
-When a desync has occurred with the desync debugging turned on you should file
-a bug report with the following files attached:
-
-- commands-out.log as it contains all the commands that were done
-- the last saved savegame (search for the last line beginning with
-   'save: dmp_cmds_' in commands-out.log). We use this savegame to check
-   whether we can quickly reproduce the desync. Otherwise we will need …
-- the first saved savegame (search for the first line beginning with 'save'
-   where the first part, up to the last underscore '_', is the same). We need
-   this savegame to be able to reproduce the bug when the last savegame is not
-   old enough. If you loaded a scenario or savegame you need to attach that.
-- optionally you can attach the savegames from around 50%, 75%, 85%, 90% and
-   95% of the game's progression. We can use these savegames to speed up the
-   reproduction of the desync, but we should be able to reproduce these
-   savegames based on the first savegame and commands-out.log.
-- in case you use any NewGRFs you should attach the ones you used unless
-   we can easily find them ourselves via bananas or when they are in the
-   #openttdcoop pack.
-
-Do NOT remove the dmp_cmds savegames of a desync you have reported until the
-desync has been fixed; if you, by accident, send us the wrong savegames we
-will not be able to reproduce the desync and thus will be unable to fix it.
 
 ## 3.0) Supported platforms
 
@@ -160,11 +55,17 @@ platforms are:
 
 - FreeBSD (SDL)
 - Haiku (SDL)
-- Linux (SDL or Allegro)
+- Linux (SDL)
 - macOS (universal) (Cocoa video and sound drivers)
 - OpenBSD (SDL)
 - OS/2 (SDL)
-- Windows (Win32 GDI (faster) or SDL or Allegro)
+- Windows (Win32 GDI (faster) or SDL)
+
+### Legacy support.
+Platforms, languages and compilers change.
+We'll keep support going on old platforms as long as someone is interested in supporting them, except where it means the project can't move the project forward to keep up with language and compiler features.
+
+We'll also do our best to maintain compatibility with old savegames, except where it becomes impractical.
 
 ## 4.0) Installing and running OpenTTD
 
@@ -270,6 +171,70 @@ goals to reach or provide a different ranking system.
 If you download a game script manually you have to follow the same rules as for
 AIs, except that game scripts are placed in the game/ directory instead of the
 ai/ directory.
+
+## 2.0) Contact and Community
+
+'Official' channels
+
+- [OpenTTD website](https://www.openttd.org)
+- IRC chat using #openttd on irc.oftc.net [more info about our irc channel](https://wiki.openttd.org/Irc)
+- [OpenTTD on Github](https://github.com/openTTD/) for code repositories and for reporting issues
+
+'Semi-official' channels
+
+- [OpenTTD wiki](https://wiki.openttd.org/) community-maintained wiki, including topics like gameplay guide, detailed explanation of some game mechanics, how to use add-on content (mods) and much more
+- [https://www.tt-forums.net](https://www.tt-forums.net) - the primary community forum site for discussing OpenTTD and related games
+
+'Unofficial' channels
+
+- the OpenTTD wiki has a [page listing OpenTTD communities](https://wiki.openttd.org/Community) including some in languages other than English
+- [https://www.reddit.com/r/openttd/](https://www.reddit.com/r/openttd/)
+
+### 2.1) Reporting bugs
+
+First of all, check whether the bug is not already known. Do this by looking
+through the file called 'known-bugs.txt' which is distributed with OpenTTD
+like this readme.
+
+For tracking our bugs we are using GitHub's issue tracker. You can find
+the tracker at https://github.com/OpenTTD/OpenTTD/issues. Before actually
+reporting take a look through the already reported bugs there to see if
+the bug is already known. The 'known-bugs.txt' file might be a bit outdated
+at the moment you are reading it as only bugs known before the release
+are documented there. Also look through the recently closed bugs.
+
+When you are sure it is not already reported you should:
+
+- Make sure you are running a recent version, i.e. run the latest stable or
+   nightly based on where you found the bug.
+- Make sure you are not running a non-official binary, like a patch pack.
+   When you are playing with a patch pack you should report any bugs to the
+   forum thread related to that patch pack.
+- Make it reproducible for the developers. In other words, create a savegame
+   in which you can reproduce the issue once loaded. It is very useful to give
+   us the crash.dmp, crash.sav, crash.log and crash screenshot which are
+   created on crashes.
+- Check whether the bug is already reported on our bug tracker. This includes
+   searching for recently closed bug reports as the bug might already be fixed.
+
+After you have done all that you can report the bug. Please include the
+following information in your bug report:
+
+- OpenTTD version (PLEASE test the latest Git revision/nightly build)
+- Bug details, including instructions how to reproduce it
+- Platform (Windows, Linux, FreeBSD, …) and compiler (including version) if
+   you compiled OpenTTD yourself.
+- The processor architecture of your OS (32-bit Windows, 64-bit Windows,
+   Linux on an ARM, Mac OS X on a PowerPC, etc.)
+- Attach a saved game **and** a screenshot if possible
+- If this bug only occurred recently please note the last version without
+   the bug and the first version including the bug. That way we can fix it
+   quicker by looking at the changes made.
+- Attach crash.dmp, crash.log and crash.sav. These files are usually created
+   next to your openttd.cfg. The crash handler will tell you the location.
+
+Desyncs in multiplayer are more complex to debug and report (some software development skils are required).
+Instructions can be found in [debugging and reporting desyncs](./docs/debugging_desyncs.md).
 
 ### 4.2) OpenTTD directories
 
@@ -409,105 +374,6 @@ Several important non-standard controls:
 - Hovering over a GUI element shows tooltips. This can be changed to right click
    via the advanced settings.
 
-### 5.1) Logging of potentially dangerous actions
-
-OpenTTD is a complex program, and together with NewGRF, it may show a buggy
-behaviour. But not only bugs in code can cause problems. There are several
-ways to affect game state possibly resulting in program crash or multiplayer
-desyncs.
-
-Easier way would be to forbid all these unsafe actions, but that would affect
-game usability for many players. We certainly do not want that.
-However, we receive bug reports because of this. To reduce time spent with
-solving these problems, these potentially unsafe actions are logged in
-the savegame (including crash.sav). Log is stored in crash logs, too.
-
-Information logged:
-
-- Adding / removing / changing order of NewGRFs
-- Changing NewGRF parameters, loading compatible NewGRF
-- Changing game mode (scenario editor <-> normal game)
-- Loading game saved in a different OpenTTD / TTDPatch / Transport Tycoon Deluxe /
-   original Transport Tycoon version
-- Running a modified OpenTTD build
-- Changing settings affecting NewGRF behaviour (non-network-safe settings)
-- Triggering NewGRF bugs
-
-No personal information is stored.
-
-You can show the game log by typing 'gamelog' in the console or by running
-OpenTTD in debug mode.
-
-### 5.2) Frame rate and performance metrics
-
-The Help menu in-game has a function to open the Frame rate window. This
-window shows various real-time performance statistics, measuring what parts
-of the game require the most processing power currently.
-
-A summary of the statistics can also be retrieved from the console with the
-`fps` command. This is especially useful on dedicated servers, where the
-administrator might want to determine what's limiting performance in a slow
-game.
-
-The frame rate is given as two figures, the simulation rate and the graphics
-frame rate. Usually these are identical, as the screen is rendered exactly
-once per simulated tick, but in the future there might be support for graphics
-and simulation running at different rates. When the game is paused, the
-simulation rate drops to zero.
-
-In addition to the simulation rate, a game speed factor is also calculated.
-This is based on the target simulation speed, which is 30 milliseconds per
-game tick. At that speed, the expected frame rate is 33.33 frames/second, and
-the game speed factor is how close to that target the actual rate is. When
-the game is in fast forward mode, the game speed factor shows how much
-speed up is achieved.
-
-The lower part of the window shows timing statistics for individual parts of
-the game. The times shown are short-term and long-term averages of how long
-it takes to process one tick of game time, all figures are in milliseconds.
-
-Clicking a line in the lower part of the window opens a graph window, giving
-detailed readings on each tick simulated by the game.
-
-The following is an explanation of the different statistics:
-
-- *Game loop* - Total processing time used per simulated "tick" in the game.
-  This includes all pathfinding, world updates, and economy handling.
-- *Cargo handling* - Time spent loading/unloading cargo at stations, and
-  industries and towns sending/retrieving cargo from stations.
-- *Train ticks*, *Road vehicle ticks*, *Ship ticks*, *Aircraft ticks* -
-  Time spent on pathfinding and other processing for each player vehicle type.
-- *World ticks* - Time spent on other world/landscape processing. This
-  includes towns growing, building animations, updates of farmland and trees,
-  and station rating updates.
-- *GS/AI total*, *Game script*, and *AI players* - Time spent running logic
-  for game scripts and AI players. The total may show as less than the current
-  sum of the individual scripts, this is because AI players at lower
-  difficulty settings do not run every game tick, and hence contribute less
-  to the average across all ticks. Keep in mind that the "Current" figure is
-  also an average, just only over short term.
-- *Link graph delay* - Time overruns of the cargo distribution link graph
-  update thread. Usually the link graph is updated in a background thread,
-  but these updates need to synchronise with the main game loop occasionally,
-  if the time spent on link graph updates is longer than the time taken to
-  otherwise simulate the game while it was updating, these delays are counted
-  in this figure.
-- *Graphics rendering* - Total time spent rendering all graphics, including
-  both GUI and world viewports. This typically spikes when panning the view
-  around, and when more things are happening on screen at once.
-- *World viewport rendering* - Isolated time spent rendering just world
-  viewports. If this figure is significantly lower than the total graphics
-  rendering time, most time is spent rendering GUI than rendering world.
-- *Video output* - Speed of copying the rendered graphics to the display
-  adapter. Usually this should be very fast (in the range of 0-3 ms), large
-  values for this can indicate a graphics driver problem.
-- *Sound mixing* - Speed of mixing active audio samples together. Usually
-  this should be very fast (in the range of 0-3 ms), if it is slow, consider
-  switching to the NoSound set.
-
-If the frame rate window is shaded, the title bar will instead show just the
-current simulation rate and the game speed factor.
-
 ## 6.0) Configuration file
 
 The configuration file for OpenTTD (openttd.cfg) is in a simple Windows-like
@@ -549,26 +415,6 @@ Note: Do not alter the following parts of the file:
 - Parts of the strings which are in curly braces (such as {STRING})
 - Lines beginning with ## (such as ##id), other than the first two lines
    of the file
-
-### 7.2) Previewing
-
-In order to view the translation in the game, you need to compile your language
-file with the strgen utility. As this utility is tailored to a specific OpenTTD
-version, you need to compile it yourself. Just take the normal OpenTTD sources
-and build that. During the build process the strgen utility will be made.
-
-strgen is a command-line utility. It takes the language filename as parameter.
-
-Example:
-
-    strgen lang/german.txt
-
-This results in compiling german.txt and produces another file named german.lng.
-Any missing strings are replaced with the English strings. Note that it looks
-for english.txt in the lang subdirectory, which is where your language file
-should also be.
-
-That is all! You should now be able to select the language in the game options.
 
 ## 8.0) Troubleshooting
 
