@@ -142,12 +142,13 @@ public:
 	 * @pre CanBuildIndustry(industry_type).
 	 * @return True if the industry was successfully build.
 	 */
-	static bool BuildIndustry(IndustryType industry_type, TileIndex tile);
+	static bool BuildIndustry(IndustryType industry_type, TileIndex tile, bool show_news);
 
 	/**
 	 * Prospect an industry of this type. Prospecting an industries let the game try to create
 	 * an industry on a random place on the map.
 	 * @param industry_type The type of the industry.
+	 * @param show_news Whether to show news message if placement is succesful.
 	 * @pre CanProspectIndustry(industry_type).
 	 * @return True if no error occurred while trying to prospect.
 	 * @note Even if true is returned there is no guarantee a new industry is build.
@@ -156,11 +157,12 @@ public:
 	 * @game due to the general chance that prospection may fail. However prospection can still
 	 * @game fail if OpenTTD is unable to find a suitable location to place the industry.
 	 */
-	static bool ProspectIndustry(IndustryType industry_type);
+	static bool ProspectIndustry(IndustryType industry_type, bool show_news);
 
 	/**
 	 * Is this type of industry built on water.
 	 * @param industry_type The type of the industry.
+	 * @param show_news Whether to show news message if placement is succesful.
 	 * @pre IsValidIndustryType(industry_type).
 	 * @return True when this type is built on water.
 	 */

@@ -1695,8 +1695,9 @@ static CommandCost CheckIfFarEnoughFromConflictingIndustry(TileIndex tile, int t
 /**
  * Advertise about a new industry opening.
  * @param ind Industry being opened.
+ * @param bool show_news broadcast player-visible news about industry being opened.
  */
-static void AdvertiseIndustryOpening(const Industry *ind)
+static void AdvertiseIndustryOpening(const Industry *ind, bool show_news)
 {
 	const IndustrySpec *ind_spc = GetIndustrySpec(ind->type);
 	SetDParam(0, ind_spc->name);
@@ -1706,7 +1707,10 @@ static void AdvertiseIndustryOpening(const Industry *ind)
 	} else {
 		SetDParam(1, ind->town->index);
 	}
-	AddIndustryNewsItem(ind_spc->new_industry_text, NT_INDUSTRY_OPEN, ind->index);
+	// Optionally suppress player-visible news message; but always tell scripts;
+	if (show_news) {
+		AddIndustryNewsItem(ind_spc->new_industry_text, NT_INDUSTRY_OPEN, ind->index);
+	}
 	AI::BroadcastNewEvent(new ScriptEventIndustryOpen(ind->index));
 	Game::NewEvent(new ScriptEventIndustryOpen(ind->index));
 }
@@ -2010,7 +2014,7 @@ static CommandCost CreateNewIndustryHelper(TileIndex tile, IndustryType type, Do
  * @param seed seed to use for desyncfree randomisations
  * @return the cost of this operation or an error
  */
-CommandCost CmdBuildIndustry(DoCommandFlag flags, TileIndex tile, IndustryType it, uint32 first_layout, bool fund, uint32 seed)
+CommandCost CmdBuildIndustry(DoCommandFlag flags, TileIndex tile, IndustryType it, uint32 first_layout, bool fund, uint32 seed, bool show_news)
 {
 	if (it >= NUM_INDUSTRYTYPES) return CMD_ERROR;
 
@@ -2089,7 +2093,7 @@ CommandCost CmdBuildIndustry(DoCommandFlag flags, TileIndex tile, IndustryType i
 	}
 
 	if ((flags & DC_EXEC) && ind != nullptr && _game_mode != GM_EDITOR) {
-		AdvertiseIndustryOpening(ind);
+		AdvertiseIndustryOpening(ind, show_news);
 	}
 
 	return CommandCost(EXPENSES_OTHER, indspec->GetConstructionCost());
@@ -2548,7 +2552,7 @@ void IndustryBuildData::TryBuildNewIndustry()
 			this->builddata[it].wait_count = this->builddata[it].max_wait + 1; // Compensate for decrementing below.
 			this->builddata[it].max_wait = std::min(1000, this->builddata[it].max_wait + 2);
 		} else {
-			AdvertiseIndustryOpening(ind);
+			AdvertiseIndustryOpening(ind, true); // Always show news when game builds during gameplay.
 			this->builddata[it].max_wait = std::max(this->builddata[it].max_wait / 2, 1); // Reduce waiting time of the industry type.
 		}
 	}

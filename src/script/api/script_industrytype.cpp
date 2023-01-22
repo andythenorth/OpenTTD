@@ -117,22 +117,22 @@
 	return deity || _settings_game.construction.raw_industry_construction == 2;
 }
 
-/* static */ bool ScriptIndustryType::BuildIndustry(IndustryType industry_type, TileIndex tile)
+/* static */ bool ScriptIndustryType::BuildIndustry(IndustryType industry_type, TileIndex tile, bool show_news)
 {
 	EnforcePrecondition(false, CanBuildIndustry(industry_type));
 	EnforcePrecondition(false, ScriptMap::IsValidTile(tile));
 
 	uint32 seed = ScriptBase::Rand();
 	uint32 layout_index = ScriptBase::RandRange((uint32)::GetIndustrySpec(industry_type)->layouts.size());
-	return ScriptObject::Command<CMD_BUILD_INDUSTRY>::Do(tile, industry_type, layout_index, true, seed);
+	return ScriptObject::Command<CMD_BUILD_INDUSTRY>::Do(tile, industry_type, layout_index, true, seed, show_news);
 }
 
-/* static */ bool ScriptIndustryType::ProspectIndustry(IndustryType industry_type)
+/* static */ bool ScriptIndustryType::ProspectIndustry(IndustryType industry_type, bool show_news)
 {
 	EnforcePrecondition(false, CanProspectIndustry(industry_type));
 
 	uint32 seed = ScriptBase::Rand();
-	return ScriptObject::Command<CMD_BUILD_INDUSTRY>::Do(0, industry_type, 0, false, seed);
+	return ScriptObject::Command<CMD_BUILD_INDUSTRY>::Do(0, industry_type, 0, false, seed, show_news);
 }
 
 /* static */ bool ScriptIndustryType::IsBuiltOnWater(IndustryType industry_type)
