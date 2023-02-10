@@ -530,6 +530,12 @@ static void DrawTile_Trees(TileInfo *ti)
 	/* Do not draw trees when the invisible trees setting is set */
 	if (IsInvisibilitySet(TO_TREES)) return;
 
+	Point pt = GetTileBelowCursor();
+	if ((ti->x < pt.x + 64) && (ti->x > pt.x - 64) && (ti->y < pt.y + 64) && (ti->y > pt.y - 64)) {
+		MarkTileDirtyByTile(ti->tile);
+		return;
+	}
+
 	uint tmp = CountBits(static_cast<uint32>(ti->tile + ti->x + ti->y));
 	uint index = GB(tmp, 0, 2) + (GetTreeType(ti->tile) << 2);
 
