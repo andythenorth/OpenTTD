@@ -246,6 +246,7 @@ STR_TOOLTIP_SORT_CRITERIA                                       :{BLACK}Select s
 STR_TOOLTIP_FILTER_CRITERIA                                     :{BLACK}Select filtering criteria
 STR_BUTTON_SORT_BY                                              :{BLACK}Sort by
 STR_BUTTON_CATCHMENT                                            :{BLACK}Coverage
+STR_BUTTON_SHOW_STORY_PAGE                                      :{BLACK}Story page
 STR_TOOLTIP_CATCHMENT                                           :{BLACK}Toggle coverage area display
 
 STR_TOOLTIP_CLOSE_WINDOW                                        :{BLACK}Close window
